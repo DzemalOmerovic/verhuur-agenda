@@ -8,6 +8,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
+import { Trash2, UserPlus } from 'lucide-react'
 
 interface TeamMember {
   id: number;
@@ -138,6 +141,38 @@ export default function TeamManagement({ userId }: { userId: string }) {
     }
   };
 
+  const updateMemberRole = async (memberId: number, newRole: string) => {
+    if (!teamId) return;
+
+    const { data, error } = await supabase
+      .from('team_members')
+      .update({ role: newRole })
+      .eq('id', memberId);
+
+    if (error) {
+      console.error('Error updating member role:', error);
+    } else {
+      setTeamMembers(teamMembers.map(member => 
+        member.id === memberId ? { ...member, role: newRole } : member
+      ));
+    }
+  };
+
+  const deleteMember = async (memberId: number) => {
+    if (!teamId) return;
+
+    const { data, error } = await supabase
+      .from('team_members')
+      .delete()
+      .eq('id', memberId);
+
+    if (error) {
+      console.error('Error deleting team member:', error);
+    } else {
+      setTeamMembers(teamMembers.filter(member => member.id !== memberId));
+    }
+  };
+
   return (
     <div className="space-y-6">
       <Card>
@@ -166,21 +201,62 @@ export default function TeamManagement({ userId }: { userId: string }) {
       </Card>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Other Team Members</CardTitle>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-2xl font-bold">Manage Team Members</CardTitle>
+          <Button variant="outline" size="sm" className="text-blue-600">
+            <UserPlus className="mr-2 h-4 w-4" />
+            Invite
+          </Button>
         </CardHeader>
         <CardContent>
-          {teamMembers.filter(member => member.user_id !== userId).map((member) => (
-            <div key={member.id} className="flex items-center space-x-4 mb-4">
-              <Avatar>
-                <AvatarFallback>{member.email?.[0].toUpperCase() || 'U'}</AvatarFallback>
-              </Avatar>
-              <div>
-                <p className="font-medium">{member.email || 'No email'}</p>
-                <p className="text-sm text-gray-500">{member.role}</p>
+          <div className="space-y-4">
+            {teamMembers.filter(member => member.user_id !== userId).map((member) => (
+              <div key={member.id} className="flex items-center space-x-4 bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+                <Avatar className="h-12 w-12">
+                  <AvatarFallback className="bg-blue-500 text-white text-lg">
+                    {member.email?.[0].toUpperCase() || 'U'}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-grow">
+                  <p className="font-semibold text-gray-700">{member.email || 'No email'}</p>
+                  <p className="text-sm text-gray-500">Joined on {new Date().toLocaleDateString()}</p>
+                </div>
+                <Select
+                  defaultValue={member.role}
+                  onValueChange={(value) => updateMemberRole(member.id, value)}
+                >
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue placeholder="Select role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="member">Member</SelectItem>
+                    <SelectItem value="owner">Owner</SelectItem>
+                  </SelectContent>
+                </Select>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700">
+                      <Trash2 className="h-5 w-5" />
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Remove team member?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This will remove {member.email} from your team. This action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => deleteMember(member.id)} className="bg-red-600 hover:bg-red-700">
+                        Remove
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </CardContent>
       </Card>
 

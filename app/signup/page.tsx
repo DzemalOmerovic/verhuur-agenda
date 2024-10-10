@@ -5,27 +5,10 @@ import { encodedRedirect } from "@/utils/utils";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
 import { UserRegisterForm } from "@/components/User-Register-Form";
+import { logActivity } from "@/lib/logs/action";
+import { ActivityType } from "@/lib/db/schema";
 
 export default function Login() {
-  const signIn = async (formData: FormData) => {
-    "use server";
-
-    const email = formData.get("email") as string;
-    const password = formData.get("password") as string;
-    const supabase = createClient();
-
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error) {
-      return encodedRedirect("error", "/login", "Could not authenticate user");
-    }
-
-    return redirect("/protected");
-  };
-
   return (
     <>
     <div className="container relative hidden h-screen flex-col items-center justify-center md:grid lg:max-w-none lg:grid-cols-2 lg:px-0">

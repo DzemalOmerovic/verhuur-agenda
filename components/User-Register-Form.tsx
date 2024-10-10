@@ -11,6 +11,9 @@ import { Label } from "@/components/ui/label"
 import { createClient } from "@/lib/supabase/client"
 import { encodedRedirect } from "@/utils/utils";
 
+import { logActivity } from "@/lib/logs/action";
+import { ActivityType } from "@/lib/db/schema";
+
 interface UserRegisterFormProps extends React.HTMLAttributes<HTMLDivElement> { }
 
 export function UserRegisterForm({ className, ...props }: UserRegisterFormProps) {
@@ -86,6 +89,10 @@ export function UserRegisterForm({ className, ...props }: UserRegisterFormProps)
             ])
 
           if (teamMemberError) throw teamMemberError
+        }
+
+        if (authData.user) {
+          logActivity(null, authData.user.id, ActivityType.SIGN_UP);
         }
 
       return encodedRedirect(

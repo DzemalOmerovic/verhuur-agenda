@@ -1,51 +1,11 @@
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
-import { encodedRedirect } from "@/utils/utils";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
-import Image from "next/image";
 import { UserLoginForm } from "@/components/User-Login-Form";
-import { User } from "lucide-react";
 
 export default function Login() {
-  const signIn = async (formData: FormData) => {
-    "use server";
-
-    const email = formData.get("email") as string;
-    const password = formData.get("password") as string;
-    const supabase = createClient();
-
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error) {
-      return encodedRedirect("error", "/login", "Could not authenticate user");
-    }
-
-    return redirect("/protected");
-  };
 
   return (
-    <>
-    {/* <div className="md:hidden">
-      <Image
-        src="/examples/authentication-light.png"
-        width={1280}
-        height={843}
-        alt="Authentication"
-        className="block dark:hidden"
-      />
-      <Image
-        src="/examples/authentication-dark.png"
-        width={1280}
-        height={843}
-        alt="Authentication"
-        className="hidden dark:block"
-      />
-    </div> */}
     <div className="container relative hidden h-screen flex-col items-center justify-center md:grid lg:max-w-none lg:grid-cols-2 lg:px-0">
       <Link
         href="/signup"
@@ -76,6 +36,5 @@ export default function Login() {
         </div>
       </div>
     </div>
-  </>
   )
 }

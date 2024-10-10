@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from 'next/navigation'
+import { logActivity } from "@/lib/logs/action";
+import { ActivityType } from "@/lib/db/schema";
 
 interface UserLoginFormProps extends React.HTMLAttributes<HTMLDivElement> { }
 
@@ -28,7 +30,7 @@ export function UserLoginForm({ className, ...props }: UserLoginFormProps) {
 
     const supabase = createClient()
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { error, data: authData } = await supabase.auth.signInWithPassword({
       email,
       password,
     })
@@ -38,6 +40,10 @@ export function UserLoginForm({ className, ...props }: UserLoginFormProps) {
       setIsLoading(false)
     } else {
       router.push("/dashboard")
+    }
+
+    if (authData.user) {
+      logActivity(null, authData.user.id, ActivityType.SIGN_IN);
     }
   }
 
